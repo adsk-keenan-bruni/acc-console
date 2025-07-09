@@ -1,0 +1,56 @@
+openapi: 3.1.0
+info:
+  title: Autodesk ACC API
+  description: >
+    This API specification is meant to be used with the Autodesk ACC API. It will evolve as I add more endpoints.
+  version: 1.0.0
+servers:
+  - url: https://developer.api.autodesk.com/
+paths:
+  /construction/admin/v1/accounts/{accountId}/projects:
+    get:
+      summary: Retrieve Projects for an Account specified by the user in this format "8d3b74be-3fa3-408c-a2e3-91553757c743"
+      operationId: getProjectsForAccount
+      parameters:
+        - name: accountId
+          in: path
+          description: The Autodesk account ID.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+      security:
+        - oauth2: []
+  /cost/v1/containers/{containerId}/templates:
+    get:
+      summary: Retrieves a list of budget code templates for the specified container. Templates include IDs and names used to structure cost data.
+      operationId: getBudgetCodeTemplates
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /cost/v1/containers/{containerId}/templates/{templateId}/segments:
+    get:
+      summary: Retrieves a list of budget code segments for the specified template. Segments include IDs and names used to structure cost data.
+      operationId: getBudgetCodeSegments
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK

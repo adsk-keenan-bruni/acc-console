@@ -181,3 +181,602 @@ paths:
                   type: string
                   description: The description of the code.
                   maxLength: 2048
+  /cost/v1/containers/{containerId}/budgets:
+    get:
+      summary: Retrieves a list of budgets for the specified container.
+      operationId: getBudgets
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [subitems, attributes, contract, mainContract, mainContractItem, segments, idOnly, compounded]
+          description: Nested resources to include in the response.
+        - name: filter[rootId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by root item IDs (comma-separated).
+        - name: filter[id]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by item IDs (comma-separated).
+        - name: filter[lastModifiedSince]
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter by last modified date (ISO 8601).
+        - name: filter[externalSystem]
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+          description: Filter by external ERP system name.
+        - name: filter[externalId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by external ERP system IDs.
+        - name: filter[code]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by codes (comma-separated, quoted if numeric).
+        - name: offset
+          in: query
+          schema:
+            type: integer
+          description: Records to skip for pagination.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: Max records per page.
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sort order, e.g., sort=name desc.
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Creates a new budget line item for the specified container.
+      operationId: createBudget
+      parameters: 
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  description: Unique code compliant with the budget code template defined by the project admin. Ignored if segmentCodeMap is defined.
+                  maxLength: 255
+                segmentCodeMap:
+                  type: object
+                  description: Map of budget code segments to be used in the budget code, required when updating root budget code with variable length segment. Key is the budget code segment ID, value is the code for the segment.
+                  additionalProperties:
+                    type: string
+                    maxLength: 255
+                name:
+                  type: string
+                  description: Name of the budget.
+                  maxLength: 1024
+                description:
+                  type: string
+                  description: Detailed description of the budget.
+                quantity:
+                  type: number
+                  description: The quantity of labor, material, and other items planned for the budget.
+                inputQuantity:
+                  type: number
+                  nullable: true
+                  description: The input quantity planned for the budget.
+                unitPrice:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: Unit price of a budget.
+                unit:
+                  type: string
+                  description: Unit of measures used in the budget.
+                actualQuantity:
+                  type: number
+                  description: Actual quantity of labor, material,… planned for a budget.
+                actualUnitPrice:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: Actual unit price of a budget.
+                actualCost:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The total amount of actual cost of the budget.
+      responses:
+        "200":
+          description: OK
+  /cost/v1/containers/{containerId}/budgets/{budgetId}:
+    patch: 
+      summary: Updates an existing budget line item for the specified container.
+      operationId: updateBudget 
+      parameters: 
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: budgetId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parentId:
+                  type: string
+                  nullable: true
+                  description: ID of the parent budget, used only when creating sub budgets.
+                code:
+                  type: string
+                  description: Unique code compliant with the budget code template defined by the project admin. Ignored if segmentCodeMap is defined.
+                  maxLength: 255
+                scope:
+                  type: string
+                  enum: [budgetOnly, budgetAndCost]
+                  description: The scope of the budget.
+                segmentCodeMap:
+                  type: object
+                  description: Map of budget code segments to be used in the budget code, required when updating root budget code with variable length segment. Key is the budget code segment ID, value is the code for the segment.
+                  additionalProperties:
+                    type: string
+                    maxLength: 255
+                name:
+                  type: string
+                  description: Name of the budget.
+                  maxLength: 1024
+                quantity:
+                  type: number
+                  description: The quantity of labor, material, and other items planned for the budget.
+                inputQuantity:
+                  type: number
+                  nullable: true
+                  description: The input quantity planned for the budget.
+                description:
+                  type: string
+                  description: Detail description of the budget.
+                unitPrice:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: Unit price of a budget.
+                unit:
+                  type: string
+                  description: Unit of measures used in the budget.
+      responses:
+        "200":
+          description: OK
+    delete:
+      summary: Deletes an existing budget line item for the specified container. 
+      operationId: deleteBudget
+      parameters: 
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: budgetId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /cost/v1/containers/{containerId}/contracts:
+    get:
+      summary: Retrieves a list of contracts for the specified container.
+      operationId: getContracts
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: integer
+          description: The number of records to skip before returning results. Used together with limit to paginate through results, where offset specifies the starting point and limit specifies the number of records to return.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: The maximum number of records returned per page. Default 100. A page may contain fewer records than the limit if there are fewer matching items or if it is the last page of results.
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Defines the sort order for the results. Each attribute can be sorted in asc (default) or desc order. For example, sort=name desc sorts the results by name in descending order.
+        - name: filter[id]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Returns only the items that are identified by the provided list of item IDs. Separate multiple IDs with commas. For example, filter[id]=id1,id2.
+        - name: filter[source]
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+          description: Returns only items with the specified source. For example, filter[source]=urn:adsk.wipqa:bc.package:dekqaSc4SRK7AJ9YLVLCeg.
+        - name: filter[code]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Returns only items that are identified by the specified codes (separated by commas). For example, filter[code]="2703,2704". Note that even single codes in number format must be enclosed in double quotes.
+        - name: filter[status]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [draft, pending, submitted, revise, sent, signed, executed, closed, inReview]
+          description: Returns only contracts with the specified statuses. Separate multiple values with commas. For example, filter[status]=draft,pending.
+        - name: filter[type]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Returns only contracts that are identified by the provided list of types. Separate multiple types with commas; for example filter[type]=type1,type2.
+        - name: filter[externalSystem]
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+          description: The name of the external ERP system. Use this name to identify or search within the integrated system. For example, filter[externalSystem]=Sage300.
+        - name: filter[externalId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: The ID of the item in the external ERP system. Use this ID to track or look up data in an integrated ERP system. For example, filter[externalId]=id1,id2.
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [budgets, attributes, idOnly, scheduleOfValues, compounded]
+          description: A list of resources related to the contract to include in the response. For example, include=budgets returns budgets related to the contract. include=attributes will return custom attributes which represents the "properties" in the response. If idOnly is set, the response contains only the contract IDs (id), and the other include items are ignored.
+        - name: filter[lastModifiedSince]
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Returns only items that were modified since the specified date and time, in ISO 8601 format. For example, filter[lastModifiedSince]=2020-03-01T13:00:00Z.
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Creates a new contract for the specified container.
+      operationId: createContract
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                code:
+                  type: string
+                  maxLength: 255
+                  description: The code of the contract.
+                name:
+                  type: string
+                  maxLength: 1024
+                  description: The name of the contract.
+                description:
+                  type: string
+                  maxLength: 2048
+                  description: The detailed description of a contract.
+                companyId:
+                  type: string
+                  nullable: true
+                  description: The ID of a company managed by a BIM 360 Admin.
+                companyUid:
+                  type: string
+                  nullable: true
+                  description: The unique ID (UUID) of the company in this account.
+                type:
+                  type: string
+                  nullable: true
+                  description: The type of contract.
+                contactId:
+                  type: string
+                  nullable: true
+                  description: The unique identifier of the default contact for the supplier.
+                source:
+                  type: string
+                  nullable: true
+                  description: The URN of the source entity from which the contract is created.
+                signedBy:
+                  type: string
+                  nullable: true
+                  description: The user who signed the contract.
+                ownerId:
+                  type: string
+                  nullable: true
+                  description: The user responsible for the purchase.
+                mainContractId:
+                  type: string
+                  nullable: true
+                  description: The ID of the main contract with which this item is associated.
+                completedWorkRetentionPercent:
+                  type: number
+                  nullable: true
+                  description: The completed work retention percentage of the contract amount.
+                materialsRetentionPercent:
+                  type: number
+                  nullable: true
+                  description: The materials retention percentage of the contract amount.
+                retentionCap:
+                  type: number
+                  nullable: true
+                  description: The maximum percentage of the total contract amount which can be used as the retention amount.
+                status:
+                  type: string
+                  nullable: true
+                  enum: [draft, pending, submitted, revise, sent, signed, executed, closed, inReview]
+                  description: The status of this contract.
+                subStatus:
+                  type: string
+                  nullable: true
+                  enum: [null, pending, submitted, revise]
+                  default: null
+                  description: The subStatus is used when the contract is in an executed state.
+                currency:
+                  type: string
+                  description: The code of the currency specified for the contract.
+                exchangeRate:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The final exchange rate for the specified currency.
+                forecastExchangeRate:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The forecast exchange rate.
+                forecastExchangeRateUpdatedAt:
+                  type: string
+                  format: date-time
+                  description: The last time that the forecast exchange rate was updated.
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier assigned to an item in its original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system integrated with Cost Management.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when the item was last synchronized with the external ERP system.
+                integrationState:
+                  type: string
+                  nullable: true
+                  enum: [locked, integrated, failed, null]
+                  default: null
+                  description: The state of the item during the integration with the external ERP system.
+  /cost/v1/containers/{containerId}/contracts/{contractId}/users:
+    patch:
+      summary: Updates users for a contract.
+      operationId: updateContractUsers
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: contractId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  maxLength: 255
+                  description: The code of the contract.
+                name:
+                  type: string
+                  maxLength: 1024
+                  description: The name of the contract.
+                description:
+                  type: string
+                  maxLength: 2048
+                  description: The detailed description of a contract.
+                companyId:
+                  type: string
+                  nullable: true
+                  description: The ID of a company managed by a BIM 360 Admin.
+                companyUid:
+                  type: string
+                  nullable: true
+                  description: The unique ID (UUID) of the company in this account.
+                type:
+                  type: string
+                  nullable: true
+                  description: The type of contract.
+                contactId:
+                  type: string
+                  nullable: true
+                  description: The unique identifier of the default contact for the supplier.
+                source:
+                  type: string
+                  nullable: true
+                  description: The URN of the source entity from which the contract is created.
+                signedBy:
+                  type: string
+                  nullable: true
+                  description: The user who signed the contract.
+                ownerId:
+                  type: string
+                  nullable: true
+                  description: The user responsible for the purchase.
+                mainContractId:
+                  type: string
+                  nullable: true
+                  description: The ID of the main contract with which this item is associated.
+                completedWorkRetentionPercent:
+                  type: number
+                  nullable: true
+                  description: The completed work retention percentage of the contract amount.
+                materialsRetentionPercent:
+                  type: number
+                  nullable: true
+                  description: The materials retention percentage of the contract amount.
+                retentionCap:
+                  type: number
+                  nullable: true
+                  description: The maximum percentage of the total contract amount which can be used as the retention amount.
+                status:
+                  type: string
+                  nullable: true
+                  enum: [draft, pending, submitted, revise, sent, signed, executed, closed, inReview]
+                  description: The status of this contract.
+                subStatus:
+                  type: string
+                  nullable: true
+                  enum: [null, pending, submitted, revise]
+                  default: null
+                  description: The subStatus is used when the contract is in an executed state.
+                currency:
+                  type: string
+                  description: The code of the currency specified for the contract.
+                exchangeRate:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The final exchange rate for the specified currency.
+                forecastExchangeRate:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The forecast exchange rate.
+                forecastExchangeRateUpdatedAt:
+                  type: string
+                  format: date-time
+                  description: The last time that the forecast exchange rate was updated.
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier assigned to an item in its original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system integrated with Cost Management.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when the item was last synchronized with the external ERP system.
+                integrationState:
+                  type: string
+                  nullable: true
+                  enum: [locked, integrated, failed, null]
+                  default: null
+                  description: The state of the item during the integration with the external ERP system.
+      responses:
+        "200":
+          description: OK
+    delete:
+      summary: Deletes a contract.
+      operationId: deleteContract
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: contractId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK

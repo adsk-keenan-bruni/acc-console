@@ -586,8 +586,7 @@ paths:
                 subStatus:
                   type: string
                   nullable: true
-                  enum: [null, pending, submitted, revise]
-                  default: null
+                  enum: [pending, submitted, revise]
                   description: The subStatus is used when the contract is in an executed state.
                 currency:
                   type: string
@@ -627,13 +626,12 @@ paths:
                 integrationState:
                   type: string
                   nullable: true
-                  enum: [locked, integrated, failed, null]
-                  default: null
+                  enum: [locked, integrated, failed]
                   description: The state of the item during the integration with the external ERP system.
-  /cost/v1/containers/{containerId}/contracts/{contractId}/users:
+  /cost/v1/containers/{containerId}/contracts/{contractId}:
     patch:
-      summary: Updates users for a contract.
-      operationId: updateContractUsers
+      summary: Updates an existing contract for the specified container.
+      operationId: updateContract
       parameters:
         - name: containerId
           in: path
@@ -716,8 +714,7 @@ paths:
                 subStatus:
                   type: string
                   nullable: true
-                  enum: [null, pending, submitted, revise]
-                  default: null
+                  enum: [pending, submitted, revise]
                   description: The subStatus is used when the contract is in an executed state.
                 currency:
                   type: string
@@ -757,8 +754,7 @@ paths:
                 integrationState:
                   type: string
                   nullable: true
-                  enum: [locked, integrated, failed, null]
-                  default: null
+                  enum: [locked, integrated, failed]
                   description: The state of the item during the integration with the external ERP system.
       responses:
         "200":
@@ -777,6 +773,118 @@ paths:
           required: true
           schema:
             type: string
+      responses:
+        "200":
+          description: OK
+  /cost/v1/containers/{containerId}/budgets-contracts:link:
+    post:
+      summary: Links a budget to a contract.
+      operationId: linkBudgetToContract
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                create:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      contractId:
+                        type: string
+                        format: uuid
+                        description: ID of the Contract to which the budget to link.
+                      budgetId:
+                        type: string
+                        format: uuid
+                        description: ID of the Budget to which the contract should be linked.
+                remove:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      contractId:
+                        type: string
+                        format: uuid
+                        description: ID of the Contract to which the budget to link.
+                      budgetId:
+                        type: string
+                        format: uuid
+                        description: ID of the Budget to which the contract to link.
+      responses:
+        "200":
+          description: OK
+  /cost/v1/containers/{containerId}/schedule-of-values/{id}:
+    get:
+      summary: Retrieves a specific schedule of values entry.
+      operationId: getScheduleOfValuesEntry
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+  /cost/v1/containers/{containerId}/change-orders/{changeOrder}:
+    post:
+      summary: Creates a new change order for the specified container.
+      operationId: createChangeOrder
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: changeOrder
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [pco, rfq, rco, oco, sco]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the change order
+                  maxLength: 1024
+                description:
+                  type: string
+                  description: Detailed description of the change order.
+                  maxLength: 2048
+                scope:
+                  type: string
+                  enum: [out, in, tbd, budgetOnly, contingency]
+                  description: The scope of the change order. Possible values are out, in, tbd, budgetOnly, contingency.
+                scopeOfWork:
+                  type: string
+                  description: Scope of work of the change order. This is a Tiptap formatted rich text (https://tiptap.dev/introduction/).
+                note:
+                  type: string
+                  description: Additional notes to the change order. This is a Tiptap formatted rich text (https://tiptap.dev/introduction/).
+                sourceType:
+                  type: string
+                  nullable: true
+                  description: The type of entity from which the change order is created (e.g., RFI, Issue).
       responses:
         "200":
           description: OK

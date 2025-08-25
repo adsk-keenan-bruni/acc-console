@@ -888,3 +888,23 @@ paths:
       responses:
         "200":
           description: OK
+  /construction/issues/v1/projects/{projectId}/issue-types:
+    get:
+      summary: Retrieves a list of issue types for the specified project.
+      operationId: getIssueTypes
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: include
+          in: query
+          required: false
+          schema:
+            type: string
+            default: subtypes
+          description: Use include=subtypes to include the types (subtypes) for each category (type).
+      responses:
+        "200":
+          description: OK

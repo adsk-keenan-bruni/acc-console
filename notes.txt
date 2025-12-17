@@ -1,1 +1,0 @@
-It is possible to define reusable query string parameters at the beginning of the openAPI spec - worth doing every once in a while to keep the document clean

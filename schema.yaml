@@ -822,6 +822,86 @@ paths:
       responses:
         "200":
           description: OK
+  /cost/v1/containers/{containerId}/schedule-of-values:
+    post:
+      summary: Creates a new schedule of values item for the specified container.
+      operationId: createScheduleOfValuesEntry
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - name
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  description: The unique ID of this SOV item.
+                parentId:
+                  type: string
+                  nullable: true
+                  description: The ID of the SOV item's parent item. For root SOV items, this value is null. Root items can only be created when allocating a budget to a contract.
+                contractId:
+                  type: string
+                  description: The ID of the contract to which the SOV item belongs.
+                budgetId:
+                  type: string
+                  nullable: true
+                  description: The ID of the budget to which the SOV item belongs.
+                code:
+                  type: string
+                  description: The code of the SOV item.
+                  maxLength: 255
+                name:
+                  type: string
+                  description: The name of the SOV item.
+                  maxLength: 1024
+                quantity:
+                  type: number
+                  description: The quantity of the SOV item.
+                unitPrice:
+                  type: number
+                  description: The unit price of the SOV item.
+                unit:
+                  type: string
+                  description: The unit of measure of the SOV item.
+                  maxLength: 1024
+                amount:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The total price of the SOV item.
+                quantityPerBulk:
+                  type: number
+                  description: The quantity conversion ratio of the SOV item.
+                bulkUnitPrice:
+                  type: number
+                  description: The unit price of the converted SOV item quantity.
+                bulk:
+                  type: number
+                  description: The converted quantity of the SOV item.
+                exchangeRate:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The exchange rate that applies to the SOV item's base currency price. For example, provide the value 0.7455 for a foreign currency that's worth 0.7455 of your base currency.
+                position:
+                  type: number
+                  description: The position of the SOV item in the list of SOV items.
+      responses:
+        "200":
+          description: OK
   /cost/v1/containers/{containerId}/schedule-of-values/{id}:
     get:
       summary: Retrieves a specific schedule of values entry.

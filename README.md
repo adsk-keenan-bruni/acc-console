@@ -1,13 +1,4 @@
-# Autodesk Construction Cloud (ACC) API Console
-
-This repository contains an OpenAPI 3.1.0 specification for interacting with the Autodesk Construction Cloud API. The schema enables structured access to ACC project data and cost management features.
-
-## Base URL
-```
-https://developer.api.autodesk.com/
-```
-
-## Supported APIs
+# Supported ACC APIs (Slack me @Keenan Bruni if you need something added!)
 
 ### Admin APIs
 
@@ -117,29 +108,39 @@ https://developer.api.autodesk.com/
   - Retrieves issue types for a project
   - Optional: include=subtypes to get nested type hierarchies
 
+#### Issues
+- **GET** `/construction/issues/v1/projects/{projectId}/issues`
+  - Retrieves issues with extensive filtering and pagination
+  - Filters: id, issueTypeId, issueSubtypeId, status, linkedDocumentUrn, dueDate, startDate, assignedTo, locationId, and more
+  - Supports sorting and field selection
+
+- **POST** `/construction/issues/v1/projects/{projectId}/issues`
+  - Creates a new issue
+  - Required: title, issueSubtypeId, status
+  - Optional: description, assignedTo, assignedToType, dueDate, startDate, locationId, rootCauseId, customAttributes, gpsCoordinates, watchers
+
+- **PATCH** `/construction/issues/v1/projects/{projectId}/issues/{issueId}`
+  - Updates an existing issue
+  - All issue properties are updatable including status, assignee, dates, location, custom attributes
+
+#### Issue Attachments
+- **POST** `/construction/issues/v1/projects/{projectId}/attachments`
+  - Adds attachments to an existing issue
+  - Requires: attachments array with attachmentId, displayName, fileName, attachmentType, storageUrn
+  - Optional: domainEntityId (issue ID)
+
+- **DELETE** `/construction/issues/v1/projects/{projectId}/attachments/{issueId}/items/{attachmentId}`
+  - Deletes a specific attachment from an issue
+  - Requires: projectId, issueId, attachmentId
+
 ---
 
 ## Container ID
 
 In ACC projects, the **container ID** is the same as the **project ID**. Use the Projects endpoint to obtain the project/container ID needed for Cost Management API calls.
 
-## Authentication
-
-Most endpoints require OAuth2 authentication. Ensure you have valid access tokens before making API calls.
-
-## Response Format
-
-All successful responses return a `200 OK` status code. Refer to the OpenAPI schema for detailed request/response structures.
-
-## Version
-
-Current API specification version: **1.0.0**
-
----
-
 ## Notes
 
 - This schema is continuously evolving as new endpoints are added
 - All IDs are in UUID format unless otherwise specified
 - Pagination is supported on list endpoints with `offset` and `limit` parameters
-- External ERP system integration is supported for budgets and contracts

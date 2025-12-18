@@ -1,5 +1,5 @@
 # Autodesk Construction Cloud Console GPT
-This repository tracks all edits to the "Autodesk Construction Cloud Console" GPT authored by Keenan Bruni - Construciton TSE. Please Slack me me any feedback, requests, bug reports, etc.
+This README tracks all currently supported endpoints of the "Autodesk Construction Cloud Console" GPT. Please Slack me @Keenan Bruni with any feedback, requests, bug reports, etc.
 
 ## Supported API Endpoints
 

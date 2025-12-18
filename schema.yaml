@@ -1401,6 +1401,924 @@ paths:
       responses:
         "201":
           description: Created
+  /cost/v1/containers/{containerId}/cost-items/{costItemId}:
+    get:
+      summary: Retrieves a cost item in the specified container.
+      operationId: getCostItem
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: costItemId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the cost item to retrieve.
+        - name: include
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [budget, changeOrders, subCostItems, attributes]
+          description: A list of related resources to include in the response.
+      responses:
+        "200":
+          description: Success
+    patch:
+      summary: Updates an existing cost item.
+      operationId: updateCostItem
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: costItemId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The cost item ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 1024
+                  description: Name of the cost item.
+                description:
+                  type: string
+                  maxLength: 2048
+                  description: Detail description of the cost item.
+                type:
+                  type: string
+                  nullable: true
+                  description: The type of the cost item.
+                estimated:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: Rough estimation of the item without a quotation.
+                proposed:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: Quoted cost of the cost item.
+                submitted:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: Amount sent to the owner for approval.
+                approved:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: Amount approved by the owner.
+                committed:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: Amount committed to the supplier.
+                inputQuantity:
+                  type: number
+                  nullable: true
+                  description: The input quantity of the cost item.
+                quantity:
+                  type: number
+                  description: The quantity of the cost item.
+                unit:
+                  type: string
+                  description: The unit of the cost item.
+                budgetId:
+                  type: string
+                  nullable: true
+                  description: The ID of the budget that the cost item is linked to.
+                contractId:
+                  type: string
+                  nullable: true
+                  description: The ID of the contract that the cost item is linked to.
+                proposedExchangeRate:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The exchange rate for the proposed cost.
+                committedExchangeRate:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The exchange rate for the committed cost.
+                locations:
+                  type: array
+                  nullable: true
+                  items:
+                    type: string
+                    format: uuid
+                  description: A list of the IDs of project locations where this item applies.
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier in the original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when last synchronized with external ERP.
+                integrationState:
+                  type: string
+                  nullable: true
+                  enum: [locked, integrated, failed]
+                  description: The state of the item during integration with external ERP.
+      responses:
+        "200":
+          description: OK
+    delete:
+      summary: Deletes an existing cost item.
+      operationId: deleteCostItem
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: costItemId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The cost item ID.
+      responses:
+        "204":
+          description: No Content
+  /cost/v1/containers/{containerId}/expenses:
+    get:
+      summary: Retrieves the requested set of expenses in the specified project.
+      operationId: getExpenses
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [expenseItems, mainContract, attributes, externalRelationship, paymentReferences]
+          description: Nested resources to include in the response.
+        - name: filter[id]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by item IDs (comma-separated).
+        - name: filter[number]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by auto-generated sequence numbers (comma-separated).
+        - name: filter[status]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [draft, pending, submitted, revise, sent, signed, executed, closed, inReview]
+          description: Filter by status (comma-separated).
+        - name: filter[mainContractId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by main contract IDs (comma-separated). Use blank for unlinked items.
+        - name: filter[budgetPaymentId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by budget payment IDs (comma-separated).
+        - name: filter[createdAt]
+          in: query
+          schema:
+            type: string
+          description: Filter by create date (ISO 8601). Supports ranges.
+        - name: filter[lastModifiedSince]
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter by last modified date (ISO 8601).
+        - name: filter[externalSystem]
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+          description: Filter by external ERP system name.
+        - name: filter[externalId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by external ERP system IDs (comma-separated).
+        - name: offset
+          in: query
+          schema:
+            type: integer
+          description: Records to skip for pagination.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: Max records per page.
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sort order, e.g., sort=name desc.
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Creates an expense in the specified project.
+      operationId: createExpense
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  maxLength: 1024
+                  description: The name of the expense.
+                supplierId:
+                  type: string
+                  nullable: true
+                  description: The supplier ID (BIM 360 Admin company ID).
+                supplierCompanyUid:
+                  type: string
+                  nullable: true
+                  format: uuid
+                  description: The unique ID (UUID) of the company in this account.
+                supplierName:
+                  type: string
+                  nullable: true
+                  maxLength: 255
+                  description: The supplier company name.
+                contractId:
+                  type: string
+                  nullable: true
+                  description: The ID of the contract used to create expense items.
+                description:
+                  type: string
+                  maxLength: 2048
+                  description: The detailed description of the expense.
+                note:
+                  type: string
+                  description: The note attached to the expense (Tiptap formatted rich text).
+                term:
+                  type: string
+                  description: The term of the expense.
+                referenceNumber:
+                  type: string
+                  description: The user-provided reference number.
+                type:
+                  type: string
+                  nullable: true
+                  maxLength: 128
+                  description: The type of the expense.
+                scope:
+                  type: string
+                  nullable: true
+                  enum: [full, partial]
+                  description: The applicable scope of the expense.
+                purchasedBy:
+                  type: string
+                  nullable: true
+                  description: The user who purchased the expense (BIM 360 Admin user ID).
+                status:
+                  type: string
+                  nullable: true
+                  enum: [draft, pending, revise, rejected, approved, paid]
+                  description: The status of the expense.
+                paymentDue:
+                  type: string
+                  nullable: true
+                  format: date-time
+                  description: The payment due date.
+                issuedAt:
+                  type: string
+                  nullable: true
+                  format: date-time
+                  description: The date and time when the expense was issued.
+                receivedAt:
+                  type: string
+                  nullable: true
+                  format: date-time
+                  description: The date and time when the expense was received.
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier in the original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when last synchronized with external ERP.
+                integrationState:
+                  type: string
+                  nullable: true
+                  enum: [locked, integrated, failed]
+                  description: The state of the item during integration with external ERP.
+      responses:
+        "201":
+          description: Created
+  /cost/v1/containers/{containerId}/expenses/{id}:
+    get:
+      summary: Retrieves the specified expense.
+      operationId: getExpense
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The object ID of the expense.
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [expenseItems, mainContract, attributes, externalRelationship, paymentReferences]
+          description: Nested resources to include in the response.
+      responses:
+        "200":
+          description: OK
+    delete:
+      summary: Deletes the specified expense.
+      operationId: deleteExpense
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The object ID of the expense.
+      responses:
+        "204":
+          description: No Content
+    patch:
+      summary: Updates the specified expense.
+      operationId: updateExpense
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The unique ID of the expense.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                budgetPaymentId:
+                  type: string
+                  nullable: true
+                  format: uuid
+                  description: ID of the Budget Pay App to which the expense belongs.
+                supplierId:
+                  type: string
+                  nullable: true
+                  description: The supplier ID (BIM 360 Admin company ID).
+                supplierCompanyUid:
+                  type: string
+                  nullable: true
+                  format: uuid
+                  description: The unique ID (UUID) of the company in this account.
+                supplierName:
+                  type: string
+                  nullable: true
+                  maxLength: 255
+                  description: The supplier name for the expense.
+                number:
+                  type: string
+                  maxLength: 255
+                  description: The auto-generated sequence number for the expense.
+                name:
+                  type: string
+                  maxLength: 1024
+                  description: A name for the expense.
+                description:
+                  type: string
+                  maxLength: 2048
+                  description: A detailed description of the expense.
+                note:
+                  type: string
+                  description: The note attached to the expense (Tiptap formatted rich text).
+                term:
+                  type: string
+                  description: The term of the expense.
+                referenceNumber:
+                  type: string
+                  description: The user-provided reference number.
+                type:
+                  type: string
+                  nullable: true
+                  maxLength: 128
+                  description: The type of the expense.
+                scope:
+                  type: string
+                  nullable: true
+                  enum: [full, partial]
+                  description: The applicable scope of the expense.
+                purchasedBy:
+                  type: string
+                  nullable: true
+                  description: The user who purchased the expense (BIM 360 Admin user ID).
+                status:
+                  type: string
+                  nullable: true
+                  enum: [draft, pending, revise, rejected, approved, paid]
+                  description: The status of the expense.
+                paymentDue:
+                  type: string
+                  nullable: true
+                  format: date-time
+                  description: The payment due date.
+                issuedAt:
+                  type: string
+                  nullable: true
+                  format: date-time
+                  description: The date and time when the expense was issued.
+                receivedAt:
+                  type: string
+                  nullable: true
+                  format: date-time
+                  description: The date and time when the expense was received.
+                mainContractId:
+                  type: string
+                  format: uuid
+                  description: The ID of the Main Contract to which the expense belongs.
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier in the original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when last synchronized with external ERP.
+                integrationState:
+                  type: string
+                  nullable: true
+                  enum: [locked, integrated, failed]
+                  description: The state of the item during integration with external ERP.
+      responses:
+        "200":
+          description: OK
+  /cost/v1/containers/{containerId}/expenses/{expenseId}/items:
+    get:
+      summary: Retrieves expense items and subitems of the specified expenses.
+      operationId: getExpenseItems
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          description: The object IDs of the expenses (comma-separated).
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [budget, contract, attributes, externalRelationship]
+          description: Nested resources to include in the response.
+        - name: filter[id]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by item IDs (comma-separated).
+        - name: filter[lastModifiedSince]
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter by last modified date (ISO 8601).
+        - name: filter[externalSystem]
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+          description: Filter by external ERP system name.
+        - name: filter[externalId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by external ERP system IDs (comma-separated).
+        - name: offset
+          in: query
+          schema:
+            type: integer
+          description: Records to skip for pagination.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: Max records per page.
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sort order, e.g., sort=name desc.
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Creates an expense item in the specified expense.
+      operationId: createExpenseItem
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The unique ID of the expense.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  description: The unique identifier of the expense item.
+                budgetId:
+                  type: string
+                  format: uuid
+                  description: The ID of the budget to which the expense item belongs.
+                budgetCode:
+                  type: string
+                  description: The code of an existing budget.
+                contractId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  description: The ID of the contract to which the expense item belongs.
+                number:
+                  type: string
+                  maxLength: 255
+                  description: The sequence number for the expense item (auto-generated if not passed).
+                name:
+                  type: string
+                  maxLength: 1024
+                  description: The name of the expense item.
+                description:
+                  type: string
+                  maxLength: 2048
+                  description: A detailed description of the expense item.
+                note:
+                  type: string
+                  description: A note to attach to the expense item (Tiptap formatted rich text).
+                scope:
+                  type: string
+                  nullable: true
+                  enum: [full, partial]
+                  description: The applicable scope of the expense item.
+                quantity:
+                  type: number
+                  description: The number of units of the expense item.
+                unitPrice:
+                  type: number
+                  nullable: true
+                  description: The price per unit of the expense item.
+                unit:
+                  type: string
+                  description: The expense item's unit of measure.
+                amount:
+                  type: number
+                  nullable: true
+                  description: The total price of the expense item (quantity * unitPrice).
+                exchangeRate:
+                  type: number
+                  nullable: true
+                  description: The exchange rate for the expense item's base currency price.
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier in the original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when last synchronized with external ERP.
+                integrationState:
+                  type: string
+                  nullable: true
+                  enum: [locked, integrated, failed]
+                  description: The state of the item during integration with external ERP.
+      responses:
+        "201":
+          description: Created
+  /cost/v1/containers/{containerId}/expenses/{expenseId}/items/{id}:
+    delete:
+      summary: Deletes an expense item from the specified expense.
+      operationId: deleteExpenseItem
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The unique ID of the expense.
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: The object IDs of the expense items (comma-separated).
+      responses:
+        "204":
+          description: No Content
+    patch:
+      summary: Updates an expense item in the specified expense.
+      operationId: updateExpenseItem
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The unique ID of the expense.
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The unique ID of the expense item.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 1024
+                  description: The name of the expense item.
+                number:
+                  type: string
+                  maxLength: 255
+                  description: The number for the expense item.
+                budgetId:
+                  type: string
+                  description: The ID of the budget to which the expense item belongs.
+                contractId:
+                  type: string
+                  description: The ID of the contract to which the expense item belongs.
+                description:
+                  type: string
+                  maxLength: 2048
+                  description: A detailed description of the expense item.
+                note:
+                  type: string
+                  description: A note to attach to the expense item (Tiptap formatted rich text).
+                scope:
+                  type: string
+                  enum: [full, partial]
+                  description: The applicable scope of the expense item.
+                quantity:
+                  type: number
+                  description: The number of units of the expense item.
+                unitPrice:
+                  type: number
+                  description: The price per unit of the expense item.
+                unit:
+                  type: string
+                  description: The expense item's unit of measure.
+                amount:
+                  type: number
+                  description: The amount of the expense item.
+                lockedField:
+                  type: string
+                  description: The expense item field to lock if recalculating the item's price.
+                aggregateBy:
+                  type: string
+                  enum: [workCompleted, workCompletedQty, materialsOnSite, materialsBilled]
+                  description: The aggregate type of the expense item.
+                exchangeRate:
+                  type: number
+                  description: The exchange rate for the expense item's base currency price.
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier in the original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when last synchronized with external ERP.
+                integrationState:
+                  type: string
+                  enum: [locked, integrated, failed]
+                  description: The state of the item during integration with external ERP.
+      responses:
+        "200":
+          description: OK
+    get:
+      summary: Retrieves an expense item in the specified expense.
+      operationId: getExpenseItem
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: expenseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The unique ID of the expense.
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The unique ID of the expense item.
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [budget, contract, attributes, externalRelationship]
+          description: Nested resources to include in the response.
+      responses:
+        "200":
+          description: OK
   /construction/issues/v1/projects/{projectId}/issue-types:
     get:
       summary: Retrieves a list of issue types for the specified project.

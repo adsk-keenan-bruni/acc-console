@@ -1,4 +1,7 @@
-# Supported ACC APIs (Slack me @Keenan Bruni if you need something added!)
+# Autodesk Construction Cloud Console GPT
+This repository tracks all edits to the "Autodesk Construction Cloud Console" GPT authored by Keenan Bruni - Construciton TSE. Please Slack me me any feedback, requests, bug reports, etc.
+
+## Supported API Endpoints
 
 ### Admin APIs
 
@@ -98,6 +101,29 @@
   - Change order types: pco, rfq, rco, oco, sco
   - Properties: name, description, scope (out/in/tbd/budgetOnly/contingency), scopeOfWork, notes
   - Supports Tiptap formatted rich text for scope of work and notes
+
+- **GET** `/cost/v1/containers/{containerId}/change-orders/{changeOrder}/{id}`
+  - Retrieves the details of a specific change order
+  - Include options: costItems, costItems[changeOrders], attributes, comments
+
+- **PATCH** `/cost/v1/containers/{containerId}/change-orders/{changeOrder}/{id}`
+  - Updates an existing change order
+  - Updatable: name, description, type, scope, scheduleChange, proposedRevisedCompletionDate, ownerId, scopeOfWork, note, exchangeRate, company info, architect info, additionalCollaborators, ERP integration fields
+
+- **DELETE** `/cost/v1/containers/{containerId}/change-orders/{changeOrder}/{id}`
+  - Deletes an existing change order
+  - Returns 204 No Content on success
+
+#### Cost Items
+- **GET** `/cost/v1/containers/{containerId}/cost-items`
+  - Retrieves all cost items in a container
+  - Filters: id, number, changeOrderId, budgetId, contractId, budgetStatus, costStatus, externalSystem, externalId, lastModifiedSince
+  - Include options: budget, changeOrders, subCostItems, attributes
+
+- **POST** `/cost/v1/containers/{containerId}/cost-items`
+  - Creates a new cost item
+  - Required: name
+  - Optional: changeOrderId, budgetId, contractId, description, estimated, proposed, submitted, approved, committed, inputQuantity, quantity, unit, exchange rates, locations, ERP integration fields
 
 ---
 

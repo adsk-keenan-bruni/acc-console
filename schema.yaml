@@ -968,6 +968,439 @@ paths:
       responses:
         "200":
           description: OK
+  /cost/v1/containers/{containerId}/change-orders/{changeOrder}/{id}:
+    get:
+      summary: Retrieves the details of a change order specified by ID.
+      operationId: getChangeOrder
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: changeOrder
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [pco, rfq, rco, oco, sco]
+          description: The change order type.
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The change order ID.
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [costItems, "costItems[changeOrders]", attributes, comments]
+          description: Include nested resources in the response.
+      responses:
+        "200":
+          description: OK
+    patch:
+      summary: Updates the specified change order.
+      operationId: updateChangeOrder
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: changeOrder
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [pco, rfq, rco, oco, sco]
+          description: The change order type.
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The change order ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the change order.
+                  maxLength: 1024
+                description:
+                  type: string
+                  description: The description of the change order.
+                  maxLength: 2048
+                type:
+                  type: string
+                  nullable: true
+                  description: The type of the change order (customizable by project admin).
+                scope:
+                  type: string
+                  enum: [out, in, tbd, budgetOnly, contingency]
+                  description: The scope of the change order.
+                scheduleChange:
+                  type: number
+                  nullable: true
+                  description: The schedule change of the change order.
+                proposedRevisedCompletionDate:
+                  type: string
+                  nullable: true
+                  description: The proposed revised completion date.
+                ownerId:
+                  type: string
+                  nullable: true
+                  description: The ID of the change order's owner/purchaser.
+                scopeOfWork:
+                  type: string
+                  description: Scope of work (Tiptap formatted rich text).
+                note:
+                  type: string
+                  description: Additional notes (Tiptap formatted rich text).
+                exchangeRate:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: Currency exchange rate for the change order.
+                companyId:
+                  type: string
+                  nullable: true
+                  description: The BIM360/ACC ID of the company.
+                companyUid:
+                  type: string
+                  nullable: true
+                  description: The unique ID (UUID) of the company.
+                architectCompanyId:
+                  type: string
+                  nullable: true
+                  description: The BIM360/ACC ID of the architecture firm.
+                architectCompanyUid:
+                  type: string
+                  nullable: true
+                  description: The UUID of the architecture firm.
+                architectContactId:
+                  type: string
+                  nullable: true
+                  description: The BIM360/ACC ID of the primary contact at the architecture firm.
+                additionalCollaborators:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      companyId:
+                        type: string
+                      companyUid:
+                        type: string
+                      contactIds:
+                        type: array
+                        items:
+                          type: string
+                  description: Additional collaborator company and contacts.
+                sourceType:
+                  type: string
+                  nullable: true
+                  description: The type of entity from which the change order is created (e.g., RFI, Issue).
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier in the original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when last synchronized with the external ERP system.
+                integrationState:
+                  type: string
+                  nullable: true
+                  enum: [locked, integrated, failed]
+                  description: The state of the item during integration with external ERP system.
+      responses:
+        "200":
+          description: OK
+    delete:
+      summary: Deletes an existing change order.
+      operationId: deleteChangeOrder
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: changeOrder
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [pco, rfq, rco, oco, sco]
+          description: The change order type.
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The change order ID.
+      responses:
+        "204":
+          description: No Content
+  /cost/v1/containers/{containerId}/cost-items:
+    get:
+      summary: Retrieves a list of all cost items in the specified cost container.
+      operationId: getCostItems
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+        - name: filter[id]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by item IDs (comma-separated).
+        - name: filter[number]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by auto-generated sequence numbers (comma-separated).
+        - name: filter[changeOrderId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by change order IDs (comma-separated).
+        - name: filter[budgetId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by budget IDs (comma-separated). Use blank for unlinked items.
+        - name: filter[contractId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by contract IDs (comma-separated). Use blank for unlinked items.
+        - name: filter[budgetStatus]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [draft, open, submitted, accepted, approved, executed, rejected]
+          description: Filter by budget status codes (comma-separated).
+        - name: filter[costStatus]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [draft, open, pricing, proposed, accepted, approved, executed, rejected]
+          description: Filter by cost status codes (comma-separated).
+        - name: filter[externalSystem]
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+          description: Filter by external ERP system name.
+        - name: filter[externalId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by external ERP system IDs (comma-separated).
+        - name: filter[lastModifiedSince]
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter by last modified date (ISO 8601).
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [budget, changeOrders, subCostItems, attributes]
+          description: Nested resources to include in the response.
+        - name: offset
+          in: query
+          schema:
+            type: integer
+          description: Records to skip for pagination.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: Max records per page.
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sort order, e.g., sort=name desc.
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Creates a new cost item in the specified cost container.
+      operationId: createCostItem
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the cost container for the project.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: The name of the cost item.
+                  maxLength: 1024
+                changeOrderId:
+                  type: string
+                  nullable: true
+                  description: The ID of the change order in which the cost item is created.
+                budgetId:
+                  type: string
+                  nullable: true
+                  description: The ID of the budget to which the cost item will be linked.
+                contractId:
+                  type: string
+                  nullable: true
+                  description: The ID of the contract to which the cost item will be linked.
+                description:
+                  type: string
+                  description: A detailed description of the cost item.
+                  maxLength: 2048
+                estimated:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The estimated value provided by the GC.
+                proposed:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The quoted value provided by the supplier (RFQ).
+                submitted:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The value submitted to the owner (COR).
+                approved:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The value approved by the owner (OCO).
+                committed:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The value committed to the supplier (SCO).
+                inputQuantity:
+                  type: number
+                  nullable: true
+                  description: The initial quantity as specified in budget or contract.
+                quantity:
+                  type: number
+                  description: The total quantity of the cost item.
+                unit:
+                  type: string
+                  description: The unit of measurement.
+                proposedExchangeRate:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The exchange rate for the proposed cost item.
+                committedExchangeRate:
+                  oneOf:
+                    - type: number
+                    - type: string
+                    - type: "null"
+                  description: The exchange rate for the committed cost item.
+                locations:
+                  type: array
+                  nullable: true
+                  items:
+                    type: string
+                    format: uuid
+                  description: List of project location IDs where this item applies.
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier in the original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when last synchronized with external ERP.
+                integrationState:
+                  type: string
+                  nullable: true
+                  enum: [locked, integrated, failed]
+                  description: The state of the item during integration with external ERP.
+      responses:
+        "201":
+          description: Created
   /construction/issues/v1/projects/{projectId}/issue-types:
     get:
       summary: Retrieves a list of issue types for the specified project.

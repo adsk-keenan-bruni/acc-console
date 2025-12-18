@@ -988,3 +988,314 @@ paths:
       responses:
         "200":
           description: OK
+  /construction/issues/v1/projects/{projectId}/issues:
+    get:
+      summary: Retrieves a list of issues for the specified project.
+      operationId: getIssues
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the project (without "b." prefix).
+        - name: filter[id]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter issues by unique issue ID.
+        - name: filter[issueTypeId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by category (type) ID.
+        - name: filter[issueSubtypeId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by type (subtype) ID.
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+          description: Filter by status. Comma-separated.
+        - name: filter[linkedDocumentUrn]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter pushpin issues by URL-encoded file item IDs.
+        - name: filter[dueDate]
+          in: query
+          schema:
+            type: string
+          description: Filter by due date (YYYY-MM-DD). Supports ranges.
+        - name: filter[startDate]
+          in: query
+          schema:
+            type: string
+          description: Filter by start date (YYYY-MM-DD). Supports ranges.
+        - name: filter[deleted]
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Filter deleted issues.
+        - name: filter[createdAt]
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter by creation date (ISO 8601). Supports ranges.
+        - name: filter[createdBy]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by creator user ID.
+        - name: filter[updatedAt]
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter by update date (ISO 8601). Supports ranges.
+        - name: filter[updatedBy]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by updater user ID.
+        - name: filter[assignedTo]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by assignee Autodesk ID.
+        - name: filter[rootCauseId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by root cause ID.
+        - name: filter[locationId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by location ID (excludes sublocations).
+        - name: filter[subLocationId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Filter by location ID (includes sublocations).
+        - name: filter[closedBy]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by user who closed the issue.
+        - name: filter[closedAt]
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter by close date (ISO 8601). Supports ranges.
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+          description: Search by title or display ID.
+        - name: filter[displayId]
+          in: query
+          schema:
+            type: integer
+          description: Filter by display ID.
+        - name: filter[assignedToType]
+          in: query
+          schema:
+            type: string
+            enum: [user, company, role, "null"]
+          description: Filter by assignee type.
+        - name: filter[customAttributes]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by custom attributes using UUID keys.
+        - name: filter[valid]
+          in: query
+          schema:
+            type: boolean
+          description: Only return valid issues (non-empty type/subtype).
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 100
+          description: Number of issues to return.
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Offset for pagination.
+        - name: sortBy
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Sort by fields. Prefix with - for descending.
+        - name: fields
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Specific fields to return.
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Creates a new issue for the specified project.
+      operationId: createIssue
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the project (without "b." prefix).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - issueSubtypeId
+                - status
+              properties:
+                title:
+                  type: string
+                  description: The title of the issue.
+                  maxLength: 100
+                description:
+                  type: string
+                  description: A brief description of the issue.
+                  maxLength: 1000
+                snapshotUrn:
+                  type: string
+                  description: Not relevant.
+                issueSubtypeId:
+                  type: string
+                  format: uuid
+                  description: The unique identifier of the subtype of the issue.
+                status:
+                  type: string
+                  enum: [draft, open, pending, in_progress, completed, in_review, not_approved, in_dispute, closed]
+                  description: The current status of the issue.
+                assignedTo:
+                  type: string
+                  description: The Autodesk ID of the member, role, or company to assign.
+                assignedToType:
+                  type: string
+                  enum: [user, company, role]
+                  nullable: true
+                  description: The type of the current assignee.
+                dueDate:
+                  type: string
+                  format: date
+                  description: The due date (ISO 8601).
+                startDate:
+                  type: string
+                  format: date
+                  description: The start date (ISO 8601).
+                locationId:
+                  type: string
+                  format: uuid
+                  description: The unique LBS identifier for the issue location.
+                locationDetails:
+                  type: string
+                  description: Location as plain text.
+                  maxLength: 250
+                rootCauseId:
+                  type: string
+                  format: uuid
+                  description: The unique identifier of the root cause type.
+                issueTemplateId:
+                  type: string
+                  format: uuid
+                  description: Not relevant.
+                published:
+                  type: boolean
+                  default: false
+                  description: Whether the issue is published.
+                permittedActions:
+                  type: array
+                  items:
+                    type: string
+                    enum: [assign_all, assign_same_company, clear_assignee, delete, add_comment, add_attachment, remove_attachment]
+                  description: List of permitted actions for this issue.
+                watchers:
+                  type: array
+                  items:
+                    type: string
+                  description: Autodesk IDs of members to assign as watchers.
+                customAttributes:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - attributeDefinitionId
+                      - value
+                    properties:
+                      attributeDefinitionId:
+                        type: string
+                        format: uuid
+                        description: The unique identifier of the custom attribute.
+                      value:
+                        oneOf:
+                          - type: string
+                          - type: number
+                          - type: "null"
+                        description: Custom attribute value.
+                  description: List of custom attributes.
+                gpsCoordinates:
+                  type: object
+                  properties:
+                    latitude:
+                      type: number
+                    longitude:
+                      type: number
+                  description: GPS coordinates for the issue location.
+      responses:
+        "200":
+          description: OK

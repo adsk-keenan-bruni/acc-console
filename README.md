@@ -26,10 +26,17 @@ Note that custom GPTs are limited to 30 API operations - so not all APIs will be
 - **GET** `/cost/v1/containers/{containerId}/templates/{templateId}/segments`
   - Retrieves a list of budget code segments for a specific template
   - Segments define the structure of budget codes
+- **POST** `/cost/v1/containers/{containerId}/templates/{templateId}/segments`
+  - Creates a new segment in the budget code template
+  - Required: name
+  - Optional: type, delimiter, length, isVariableLength, position, sampleCode
 
 #### Budget Code Segment Values
 - **GET** `/cost/v1/containers/{containerId}/segment-values`
   - Retrieves all budget code segment values for a container
+- **POST** `/cost/v1/containers/{containerId}/segments/{segmentId}/values:import`
+  - Imports segment value definitions for use in a specific segment of a budget code template
+  - Body: data (array of segment values), append (boolean)
 
 #### Budgets
 - **GET** `/cost/v1/containers/{containerId}/budgets`

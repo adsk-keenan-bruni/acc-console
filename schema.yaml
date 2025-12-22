@@ -52,6 +52,60 @@ paths:
       responses:
         "200":
           description: OK
+    post:
+      summary: Creates a new segment in the budget code template.
+      operationId: createBudgetCodeSegment
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  maxLength: 1024
+                  description: The name of the budget code template.
+                type:
+                  type: string
+                  enum: [code, column, info]
+                  default: code
+                  description: The segment type.
+                delimiter:
+                  type: string
+                  enum: [none, space, point, hyphen, underscore, tab]
+                  default: none
+                  description: The delimiter that follows the segment.
+                length:
+                  type: number
+                  default: 100
+                  description: The number of characters allowed in the segment.
+                isVariableLength:
+                  type: boolean
+                  default: false
+                  description: Whether the segment is flexible length.
+                position:
+                  type: number
+                  description: The order of the segment in the budget code template.
+                sampleCode:
+                  type: string
+                  description: A code sample for the segment used to demonstrate how the segment looks when displayed.
+      responses:
+        "201":
+          description: Created
   /cost/v1/containers/{containerId}/segment-values:
     get:
       summary: Retrieves a list of budget code segment values for the specified container.
@@ -2037,3 +2091,59 @@ paths:
       responses:
         "201":
           description: Created
+  /cost/v1/containers/{containerId}/segments/{segmentId}/values%3Aimport:
+    post:
+      summary: Imports segment value definitions for use in a specific segment of a budget code template.
+      operationId: importBudgetCodeSegmentValues
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: segmentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - data
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: The ID of the code.
+                      parentId:
+                        type: string
+                        nullable: true
+                        description: The parent ID of this code if it is the sub item of another code.
+                      code:
+                        type: string
+                        maxLength: 255
+                        description: The display code.
+                      originalCode:
+                        type: string
+                        maxLength: 255
+                        description: The original value of the code before the delimiters are removed.
+                      description:
+                        type: string
+                        maxLength: 2048
+                        description: The description of the code.
+                  description: A list of segment values.
+                append:
+                  type: boolean
+                  description: true append the imported segment values to the existing values. false purge the existing segment values and replace them with the imported values.
+      responses:
+        "200":
+          description: OK

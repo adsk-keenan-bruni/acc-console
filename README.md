@@ -1,5 +1,5 @@
 # ACC Cost Management Wizard GPT
-This README tracks all currently supported endpoints of the "ACC Cost Management Wizard" GPT. Please Slack me @Keenan Bruni with any feedback, requests, bug reports, etc.
+This repo tracks the "ACC Cost Management Wizard" GPT schema. Pull requests are welcome. Please Slack me @Keenan Bruni with any feedback, requests, bug reports, & memes. 
 
 Note that custom GPTs are limited to 30 API operations - so not all APIs will be included. GET, POST, and PATCH operations are prioritized over DELETE as this tool is meant for setting up custom demo environments on the fly.
 
@@ -46,6 +46,11 @@ Note that custom GPTs are limited to 30 API operations - so not all APIs will be
   - Updates an existing budget line item
   - Supports scope definition (budgetOnly, budgetAndCost)
   - Can update parent relationships, codes, quantities, prices, segmentCodeMap
+
+- **POST** `/cost/v1/containers/{containerId}/budgets:import`
+  - Imports a list of budgets into a project
+  - Parameters: force (query)
+  - Body: data (array of budgets), append (boolean)
 
 #### Contracts
 - **GET** `/cost/v1/containers/{containerId}/contracts`
@@ -124,6 +129,24 @@ Note that custom GPTs are limited to 30 API operations - so not all APIs will be
   - Creates an expense item in the specified expense
   - Required: name
   - Optional: budgetId, budgetCode, contractId, number, description, note, scope (full/partial), quantity, unitPrice, unit, amount, exchangeRate, ERP integration fields
+
+#### Main Contracts
+- **GET** `/cost/v1/containers/{containerId}/main-contracts`
+  - Retrieves one or more of the main contracts in the given project
+  - Filters: id, code, status, lastModifiedSince, externalSystem, externalId
+  - Include options: mainContractItems, attributes
+- **POST** `/cost/v1/containers/{containerId}/main-contracts`
+  - Creates a main contract in the given project
+  - Required: code, name
+  - Optional: description, note, scopeOfWork, type, contactId, ownerCompanyId, dates, status, retention settings, ERP integration fields
+- **GET** `/cost/v1/containers/{containerId}/main-contracts/{mainContractId}/items`
+  - Retrieves one or more items in the specified main contracts
+  - Filters: id, externalSystem, externalId
+  - Include options: budget, mainContract
+- **POST** `/cost/v1/containers/{containerId}/main-contracts/{mainContractId}/items`
+  - Creates a main contract item in the given main contract
+  - Required: code, name
+  - Optional: description, parentId, budgetId, unit, unitPrice, quantity, position, ERP integration fields
 
 ---
 

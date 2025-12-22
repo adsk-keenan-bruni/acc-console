@@ -279,6 +279,41 @@ paths:
       responses:
         "200":
           description: OK
+  /cost/v1/containers/{containerId}/budgets%3Aimport:
+    post:
+      summary: Imports a list of budgets into a project.
+      operationId: importBudgets
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: force
+          in: query
+          schema:
+            type: boolean
+          description: Forces an override of locked budgeting.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - data
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                  description: A list of budgets to import.
+                append:
+                  type: boolean
+                  description: True to append, false to purge existing.
+      responses:
+        "204":
+          description: Success
   /cost/v1/containers/{containerId}/contracts:
     get:
       summary: Retrieves a list of contracts for the specified container.
@@ -626,7 +661,7 @@ paths:
       responses:
         "200":
           description: OK
-  /cost/v1/containers/{containerId}/budgets-contracts:link:
+  /cost/v1/containers/{containerId}/budgets-contracts%3Alink:
     post:
       summary: Links a budget to a contract.
       operationId: linkBudgetToContract
@@ -827,7 +862,7 @@ paths:
             type: array
             items:
               type: string
-              enum: [costItems, costItems[changeOrders], attributes, comments]
+              enum: [costItems, "costItems[changeOrders]", attributes, comments]
           description: Include nested resources in the response.
         - name: filter[budgetStatus]
           in: query
@@ -1654,3 +1689,351 @@ paths:
       responses:
         "200":
           description: OK
+  /cost/v1/containers/{containerId}/main-contracts:
+    get:
+      summary: Retrieves one or more of the main contracts in the given project.
+      operationId: getMainContracts
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [mainContractItems, attributes]
+          description: A list of the types of sub-main contract components to include in the response.
+        - name: filter[id]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Returns only the items that are identified by the provided list of item IDs.
+        - name: filter[code]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Returns only items that are identified by the specified codes.
+        - name: filter[status]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [draft, pending, submitted, revise, sent, signed, executed, closed, inReview]
+          description: Returns only main contracts that have a status on the provided list of statuses.
+        - name: filter[lastModifiedSince]
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Returns only items that were modified since the specified date and time.
+        - name: filter[externalSystem]
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+          description: The name of the external ERP system.
+        - name: filter[externalId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: The ID of the item in the external ERP system.
+        - name: offset
+          in: query
+          schema:
+            type: integer
+          description: The number of records to skip before returning results.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: The maximum number of records returned per page.
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Defines the sort order for the results.
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Creates a main contract in the given project.
+      operationId: createMainContract
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - name
+              properties:
+                code:
+                  type: string
+                  maxLength: 255
+                  description: The code of the main contract.
+                name:
+                  type: string
+                  maxLength: 1024
+                  description: The name of the main contract.
+                description:
+                  type: string
+                  maxLength: 2048
+                  description: Detailed description of a main contract.
+                note:
+                  type: string
+                  description: A note about the main contract in Tiptap-formatted rich text.
+                scopeOfWork:
+                  type: string
+                  description: The scope of work signed by all parties to the main contract, in Tiptap-formatted rich text.
+                type:
+                  type: string
+                  description: The type of the main contract.
+                contactId:
+                  type: string
+                  description: The BIM360/ACC ID of the supplier’s default contact.
+                ownerCompanyId:
+                  type: string
+                  description: The BIM360/ACC ID of the owner company.
+                ownerContactId:
+                  type: string
+                  description: The BIM360/ACC ID of the primary contact at the owner company.
+                architectCompanyId:
+                  type: string
+                  description: The BIM360/ACC ID of the architecture firm.
+                architectContactId:
+                  type: string
+                  description: The BIM360/ACC ID of the primary contact at the architecture firm.
+                ownerCompanyUid:
+                  type: string
+                  description: The unique ID (UUID) of the company in this account.
+                contractorCompanyUid:
+                  type: string
+                  description: The unique ID (UUID) of the company in this account.
+                architectCompanyUid:
+                  type: string
+                  description: The unique ID (UUID) of the company in this account.
+                notaryCompanyUid:
+                  type: string
+                  description: The unique ID (UUID) of the company in this account.
+                startDate:
+                  type: string
+                  description: The start date of the main contract.
+                executedDate:
+                  type: string
+                  description: The execution date of the main contract.
+                plannedCompletionDate:
+                  type: string
+                  description: The planned completion date of the main contract.
+                revisedCompletionDate:
+                  type: string
+                  description: The revised completion date of the main contract.
+                actualCompletionDate:
+                  type: string
+                  description: The actual completion date of the main contract.
+                closeDate:
+                  type: string
+                  description: The closing date of the main contract.
+                status:
+                  type: string
+                  enum: [closed, executed, review, signed]
+                  description: The status of the main contract.
+                isDefault:
+                  type: boolean
+                  description: True if this is the default main contract.
+                completedWorkRetentionPercent:
+                  type: number
+                  description: The completed work retention percentage of the main contract amount.
+                materialsRetentionPercent:
+                  type: number
+                  description: The materials retention percentage of the main contract amount.
+                retentionCap:
+                  type: number
+                  description: The total retention percentage of the main contract amount.
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier assigned to an item in its original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system integrated with Cost Management.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when the item was last synchronized with the external ERP system.
+                integrationState:
+                  type: string
+                  enum: [locked, integrated, failed]
+                  description: The state of the item during the integration with the external ERP system.
+      responses:
+        "201":
+          description: Created
+  /cost/v1/containers/{containerId}/main-contracts/{mainContractId}/items:
+    get:
+      summary: Retrieves one or more items in the specified main contracts.
+      operationId: getMainContractItems
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: mainContractId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the main contract.
+        - name: filter[id]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+          description: Returns only the items that are identified by the provided list of item IDs.
+        - name: include
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [budget, mainContract]
+          description: Nested resources to include in the response.
+        - name: offset
+          in: query
+          schema:
+            type: integer
+          description: Records to skip for pagination.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: Max records per page.
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sort order.
+        - name: filter[externalSystem]
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+          description: Filter by external ERP system name.
+        - name: filter[externalId]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by external ERP system IDs.
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Creates a main contract item in the given main contract.
+      operationId: createMainContractItem
+      parameters:
+        - name: containerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: mainContractId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - name
+              properties:
+                id:
+                  type: string
+                  description: An ID for the main contract item.
+                code:
+                  type: string
+                  maxLength: 255
+                  description: A code for the main contract item.
+                name:
+                  type: string
+                  maxLength: 1024
+                  description: A name for the main contract item.
+                description:
+                  type: string
+                  maxLength: 2048
+                  description: A description of the main contract item.
+                parentId:
+                  type: string
+                  description: The ID of the parent item of the main contract item.
+                budgetId:
+                  type: string
+                  description: The ID of a budget to link to the main contract item.
+                unit:
+                  type: string
+                  maxLength: 255
+                  description: The unit of measure of the main contract item.
+                unitPrice:
+                  type: number
+                  description: The unit price of the main contract item.
+                quantity:
+                  type: number
+                  description: The quantity of the main contract item.
+                position:
+                  type: integer
+                  description: The position of the main contract item in its siblings.
+                externalId:
+                  type: string
+                  maxLength: 255
+                  description: The identifier assigned to an item in its original external ERP system.
+                externalSystem:
+                  type: string
+                  maxLength: 255
+                  description: The name of the external ERP system integrated with Cost Management.
+                externalMessage:
+                  type: string
+                  maxLength: 255
+                  description: A message generated by the external ERP system.
+                lastSyncTime:
+                  type: string
+                  format: date-time
+                  description: The date and time when the item was last synchronized with the external ERP system.
+                integrationState:
+                  type: string
+                  enum: [locked, integrated, failed]
+                  description: The state of the item during the integration with the external ERP system.
+      responses:
+        "201":
+          description: Created

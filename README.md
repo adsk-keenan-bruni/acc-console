@@ -1,5 +1,7 @@
-# Autodesk Construction Cloud Console GPT
-This README tracks all currently supported endpoints of the "Autodesk Construction Cloud Console" GPT. Please Slack me @Keenan Bruni with any feedback, requests, bug reports, etc.
+# ACC Cost Management Wizard GPT
+This README tracks all currently supported endpoints of the "ACC Cost Management Wizard" GPT. Please Slack me @Keenan Bruni with any feedback, requests, bug reports, etc.
+
+Note that custom GPTs are limited to 30 API operations - so not all APIs will be included. GET, POST, and PATCH operations are prioritized over DELETE as this tool is meant for setting up custom demo environments on the fly.
 
 ## Supported API Endpoints
 
@@ -10,11 +12,6 @@ This README tracks all currently supported endpoints of the "Autodesk Constructi
   - Retrieves all projects for a specified account
   - Requires: Account ID (UUID format)
   - Authentication: OAuth2
-
-#### Project Users
-- **GET** `/construction/admin/v1/projects/{projectId}/users`
-  - Retrieves all users for a specified project
-  - Requires: Project ID (UUID format)
 
 ---
 
@@ -29,44 +26,32 @@ This README tracks all currently supported endpoints of the "Autodesk Constructi
 - **GET** `/cost/v1/containers/{containerId}/templates/{templateId}/segments`
   - Retrieves a list of budget code segments for a specific template
   - Segments define the structure of budget codes
-  
-- **POST** `/cost/v1/containers/{containerId}/templates/{templateId}/segments`
-  - Creates a new budget code segment for a template
-  - Configurable properties: name, type (code/column/info), delimiter, length, position, sample code
 
 #### Budget Code Segment Values
 - **GET** `/cost/v1/containers/{containerId}/segment-values`
   - Retrieves all budget code segment values for a container
-  
-- **POST** `/cost/v1/containers/{containerId}/segment-values`
-  - Creates a new budget code segment value
-  - Requires: segment ID (query parameter), code, description
-  - Supports hierarchical structure with parent IDs
 
 #### Budgets
 - **GET** `/cost/v1/containers/{containerId}/budgets`
   - Retrieves budgets with extensive filtering and pagination
   - Filters: rootId, id, lastModifiedSince, externalSystem, externalId, code
-  - Include options: subitems, attributes, contract, mainContract, segments, compounded
+  - Include options: subitems, attributes, contract, mainContract, mainContractItem, segments, idOnly, compounded
   
 - **POST** `/cost/v1/containers/{containerId}/budgets`
   - Creates a new budget line item
   - Required: code
-  - Optional: name, description, quantity, unitPrice, unit, actualQuantity, actualUnitPrice, actualCost
+  - Optional: name, description, quantity, unitPrice, unit, actualQuantity, actualUnitPrice, actualCost, segmentCodeMap, inputQuantity
   
 - **PATCH** `/cost/v1/containers/{containerId}/budgets/{budgetId}`
   - Updates an existing budget line item
   - Supports scope definition (budgetOnly, budgetAndCost)
-  - Can update parent relationships, codes, quantities, prices
-  
-- **DELETE** `/cost/v1/containers/{containerId}/budgets/{budgetId}`
-  - Deletes a budget line item
+  - Can update parent relationships, codes, quantities, prices, segmentCodeMap
 
 #### Contracts
 - **GET** `/cost/v1/containers/{containerId}/contracts`
   - Retrieves contracts with comprehensive filtering
   - Filters: id, source, code, status, type, externalSystem, externalId, lastModifiedSince
-  - Include options: budgets, attributes, scheduleOfValues, compounded
+  - Include options: budgets, attributes, idOnly, scheduleOfValues, compounded
   - Status options: draft, pending, submitted, revise, sent, signed, executed, closed, inReview
   
 - **POST** `/cost/v1/containers/{containerId}/contracts`
@@ -77,9 +62,6 @@ This README tracks all currently supported endpoints of the "Autodesk Constructi
 - **PATCH** `/cost/v1/containers/{containerId}/contracts/{contractId}`
   - Updates an existing contract
   - All contract properties are updatable
-  
-- **DELETE** `/cost/v1/containers/{containerId}/contracts/{contractId}`
-  - Deletes a contract
 
 #### Budget-Contract Links
 - **POST** `/cost/v1/containers/{containerId}/budgets-contracts:link`
@@ -87,32 +69,27 @@ This README tracks all currently supported endpoints of the "Autodesk Constructi
   - Supports batch operations with `create` and `remove` arrays
 
 #### Schedule of Values (SOV)
-- **GET** `/cost/v1/containers/{containerId}/schedule-of-values/{id}`
-  - Retrieves a specific schedule of values entry
-  
 - **POST** `/cost/v1/containers/{containerId}/schedule-of-values`
   - Creates a new SOV item
   - Required: code, name
   - Supports hierarchical structure, quantities, pricing, bulk conversions, exchange rates
 
 #### Change Orders
+- **GET** `/cost/v1/containers/{containerId}/change-orders/{changeOrder}`
+  - Retrieves a list of change orders of a specified type
+  - Change order types: pco, rfq, rco, oco, sco
+  - Filters: id, number, sourceId, contractId, mainContractId, budgetStatus, costStatus, lastModifiedSince, externalSystem, externalId
+  - Include options: costItems, costItems[changeOrders], attributes, comments
+
 - **POST** `/cost/v1/containers/{containerId}/change-orders/{changeOrder}`
   - Creates a new change order
   - Change order types: pco, rfq, rco, oco, sco
-  - Properties: name, description, scope (out/in/tbd/budgetOnly/contingency), scopeOfWork, notes
+  - Properties: name, description, scope (out/in/tbd/budgetOnly/contingency), scopeOfWork, note, sourceType
   - Supports Tiptap formatted rich text for scope of work and notes
-
-- **GET** `/cost/v1/containers/{containerId}/change-orders/{changeOrder}/{id}`
-  - Retrieves the details of a specific change order
-  - Include options: costItems, costItems[changeOrders], attributes, comments
 
 - **PATCH** `/cost/v1/containers/{containerId}/change-orders/{changeOrder}/{id}`
   - Updates an existing change order
-  - Updatable: name, description, type, scope, scheduleChange, proposedRevisedCompletionDate, ownerId, scopeOfWork, note, exchangeRate, company info, architect info, additionalCollaborators, ERP integration fields
-
-- **DELETE** `/cost/v1/containers/{containerId}/change-orders/{changeOrder}/{id}`
-  - Deletes an existing change order
-  - Returns 204 No Content on success
+  - Updatable: name, description, type, scope, scheduleChange, proposedRevisedCompletionDate, ownerId, scopeOfWork, note, exchangeRate, company info, architect info, additionalCollaborators, sourceType, ERP integration fields
 
 #### Cost Items
 - **GET** `/cost/v1/containers/{containerId}/cost-items`
@@ -125,39 +102,28 @@ This README tracks all currently supported endpoints of the "Autodesk Constructi
   - Required: name
   - Optional: changeOrderId, budgetId, contractId, description, estimated, proposed, submitted, approved, committed, inputQuantity, quantity, unit, exchange rates, locations, ERP integration fields
 
----
+#### Expenses
+- **GET** `/cost/v1/containers/{containerId}/expenses`
+  - Retrieves the requested set of expenses in the specified project
+  - Filters: id, number, status, mainContractId, budgetPaymentId, createdAt, lastModifiedSince, externalSystem, externalId
+  - Include options: expenseItems, mainContract, attributes, externalRelationship, paymentReferences
+  - Status options: draft, pending, submitted, revise, sent, signed, executed, closed, inReview
 
-### Issues APIs
+- **POST** `/cost/v1/containers/{containerId}/expenses`
+  - Creates an expense in the given project
+  - Required: name
+  - Optional: supplierId, supplierCompanyUid, supplierName, contractId, number, description, note, term, referenceNumber, type, scope, purchasedBy, status, paymentDue, issuedAt, receivedAt, ERP integration fields
 
-#### Issue Types
-- **GET** `/construction/issues/v1/projects/{projectId}/issue-types`
-  - Retrieves issue types for a project
-  - Optional: include=subtypes to get nested type hierarchies
+#### Expense Items
+- **GET** `/cost/v1/containers/{containerId}/expenses/{expenseId}/items`
+  - Retrieves the expense items and subitems of the specified expenses
+  - Filters: id, lastModifiedSince, externalSystem, externalId
+  - Include options: budget, contract, attributes, externalRelationship
 
-#### Issues
-- **GET** `/construction/issues/v1/projects/{projectId}/issues`
-  - Retrieves issues with extensive filtering and pagination
-  - Filters: id, issueTypeId, issueSubtypeId, status, linkedDocumentUrn, dueDate, startDate, assignedTo, locationId, and more
-  - Supports sorting and field selection
-
-- **POST** `/construction/issues/v1/projects/{projectId}/issues`
-  - Creates a new issue
-  - Required: title, issueSubtypeId, status
-  - Optional: description, assignedTo, assignedToType, dueDate, startDate, locationId, rootCauseId, customAttributes, gpsCoordinates, watchers
-
-- **PATCH** `/construction/issues/v1/projects/{projectId}/issues/{issueId}`
-  - Updates an existing issue
-  - All issue properties are updatable including status, assignee, dates, location, custom attributes
-
-#### Issue Attachments
-- **POST** `/construction/issues/v1/projects/{projectId}/attachments`
-  - Adds attachments to an existing issue
-  - Requires: attachments array with attachmentId, displayName, fileName, attachmentType, storageUrn
-  - Optional: domainEntityId (issue ID)
-
-- **DELETE** `/construction/issues/v1/projects/{projectId}/attachments/{issueId}/items/{attachmentId}`
-  - Deletes a specific attachment from an issue
-  - Requires: projectId, issueId, attachmentId
+- **POST** `/cost/v1/containers/{containerId}/expenses/{expenseId}/items`
+  - Creates an expense item in the specified expense
+  - Required: name
+  - Optional: budgetId, budgetCode, contractId, number, description, note, scope (full/partial), quantity, unitPrice, unit, amount, exchangeRate, ERP integration fields
 
 ---
 

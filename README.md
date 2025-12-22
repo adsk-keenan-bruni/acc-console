@@ -1,9 +1,5 @@
 # ACC Cost Management Wizard GPT
-<<<<<<< HEAD
-This repo tracks the "ACC Cost Management Wizard" GPT schema. Pull requests are welcome. Please Slack me @Keenan Bruni with any feedback, requests, bug reports, & memes. 
-=======
 This repo tracks the "ACC Cost Management Wizard" GPT schema. Pull requests are welcome. Please Slack me @Keenan Bruni with any feedback, requests, bug reports, etc.
->>>>>>> 9eaefb0c1803c0727c1286202f0949fa399e98d9
 
 Note that custom GPTs are limited to 30 API operations - so not all APIs will be included. GET, POST, and PATCH operations are prioritized over DELETE as this tool is meant for setting up custom demo environments on the fly.
 
